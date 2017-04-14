@@ -73,6 +73,23 @@ assumption(Just(10).andThen(a => Nothing).withDefault(0) === 0);
 assumption(Nothing.andThen(a => Just(a * 20)).withDefault(0) === 0);
 
 
+Maybe.prototype.isJust = function () {
+    return this.match([
+        value => true,
+        () => false
+    ]);
+};
+assumption(Just(10).isJust());
+assumption(!Nothing.isJust());
+
+
+Maybe.prototype.isNothing = function () {
+    return !this.isJust();
+};
+assumption(!Just(10).isNothing());
+assumption(Nothing.isNothing());
+
+
 module.exports = {
     Just,
     Nothing
