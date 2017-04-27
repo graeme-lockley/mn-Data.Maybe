@@ -1,9 +1,7 @@
-"use strict";
-
 /*
  * Maybe a =
- *   Just a
- * | Nothing
+ *   Nothing
+ * | Just a
  */
 
 function Maybe(value) {
@@ -11,78 +9,90 @@ function Maybe(value) {
 }
 
 
+//= Nothing :: Maybe a
+const Nothing = new Maybe([0]);
+
+
+//= Just :: a -> Maybe a
 function Just(something) {
-    return new Maybe([0, something]);
+    return new Maybe([1, something]);
 }
 
 
-const Nothing = new Maybe([1]);
-
-
-Maybe.prototype.match = function (patterns) {
-    return this.value[0] === 0 ? patterns[0](this.value[1]) : patterns[1]();
+//= Maybe a => reduce :: (() -> b) -> (a -> b) -> b
+Maybe.prototype.reduce = function (fNothing) {
+    return fJust => this.value[0] === 0
+        ? fNothing()
+        : fJust(this.value[1]);
 };
 
 
-// Maybe a . withDefault: a -> a
+//= Maybe a => withDefault :: a -> a
 Maybe.prototype.withDefault = function (value) {
-    return this.match([
-        thisValue => thisValue,
-        () => value
-    ]);
+    return this.reduce(
+        () => value)(
+        thisValue => thisValue);
 };
 assumption(Just(1).withDefault(10) === 1);
 assumption(Nothing.withDefault(10) === 10);
 
 
-// Maybe a . map: (a -> b) -> Maybe b
+//= Maybe a => map :: (a -> b) -> Maybe b
 Maybe.prototype.map = function (f) {
-    return this.match([
-        value => Just(f(value)),
-        () => Nothing
-    ]);
+    return this.reduce(
+        () => Nothing)(
+        value => Just(f(value)));
 };
 assumption(Just(10).map(x => x * 2).withDefault(0) === 20);
 assumption(Nothing.map(x => x * 2).withDefault(0) === 0);
 
 
-// Maybe a . map2: (a -> b -> c) -> Maybe b -> Maybe c
+//= Maybe a => map2 :: (a -> b -> c) -> Maybe b -> Maybe c
 Maybe.prototype.map2 = function (b) {
-    return f => this.match([
-        thisValue => b.match([
-            bValue => Just(f(thisValue)(bValue)),
-            () => Nothing
-        ]),
-        () => Nothing
-    ]);
+    return f => this.reduce(
+        () => Nothing)(
+        thisValue => b.reduce(
+            () => Nothing)(
+            bValue => Just(f(thisValue)(bValue))));
 };
 assumption(Just(10).map2(Just(20))(a => b => a * b).withDefault(0) === 200);
 assumption(Nothing.map2(Just(20))(a => b => a * b).withDefault(0) === 0);
 assumption(Just(10).map2(Nothing)(a => b => a * b).withDefault(0) === 0);
 
 
-// Maybe a . andThen: (a -> Maybe b) -> Maybe b
-Maybe.prototype.andThen = function (callback) {
-    return this.match([
-        value => callback(value),
-        () => Nothing
-    ]);
+//= Maybe a => then :: (a -> Maybe b) -> Maybe b
+Maybe.prototype.then = function (f) {
+    return this.reduce(
+        () => Nothing)(
+        value => f(value));
 };
-assumption(Just(10).andThen(a => Just(a * 20)).withDefault(0) === 200);
-assumption(Just(10).andThen(a => Nothing).withDefault(0) === 0);
-assumption(Nothing.andThen(a => Just(a * 20)).withDefault(0) === 0);
+assumption(Just(10).then(a => Just(a * 20)).withDefault(0) === 200);
+assumption(Just(10).then(a => Nothing).withDefault(0) === 0);
+assumption(Nothing.then(a => Just(a * 20)).withDefault(0) === 0);
 
 
+//= Maybe a => catch :: (() -> Maybe a) -> Maybe a
+Maybe.prototype.catch = function (f) {
+    return this.reduce(
+        () => f())(
+        value => Just(value));
+};
+assumption(Just(10).catch(a => Just(100)).withDefault(0) === 10);
+assumption(Just(10).catch(a => Nothing).withDefault(0) === 10);
+assumption(Nothing.catch(a => Just(20)).withDefault(0) === 20);
+
+
+//= Maybe a => isJust :: () -> Bool
 Maybe.prototype.isJust = function () {
-    return this.match([
-        value => true,
-        () => false
-    ]);
+    return this.reduce(
+        () => false)(
+        value => true);
 };
 assumption(Just(10).isJust());
 assumption(!Nothing.isJust());
 
 
+//= Maybe a => isNothing :: () -> Bool
 Maybe.prototype.isNothing = function () {
     return !this.isJust();
 };
