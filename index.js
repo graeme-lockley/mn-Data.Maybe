@@ -52,12 +52,6 @@ Show.extend(Maybe)({
 });
 
 
-Show.extend($String)({
-    show: self =>
-    "\"" + NativeString.replace("\"")("\\\"")(self.value) + "\""
-});
-
-
 //= Maybe a => reduce :: (() -> b) -> (a -> b) -> b
 Maybe.prototype.reduce = function (fNothing) {
     return fJust => this.value[0] === 0
