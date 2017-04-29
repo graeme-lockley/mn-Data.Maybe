@@ -1,8 +1,8 @@
-/*
- * Maybe a =
- *   Nothing
- * | Just a
- */
+//- The Maybe type is used to represent optional values and can be seen as something like a type-safe null, where
+//- `Nothing` is `null` and `Just(x)` is the non-null value `x`.
+
+const NativeMaybe = mrequire("core:Data.Native.Maybe:1.3.0");
+
 
 function Maybe(value) {
     this.value = value;
@@ -98,6 +98,29 @@ Maybe.prototype.isNothing = function () {
 };
 assumption(!Just(10).isNothing());
 assumption(Nothing.isNothing());
+
+
+//- Converts this into a native `Maybe`.
+//= Maybe a => asNative :: () => Data.Native.Maybe a
+Maybe.prototype.asNative = function () {
+    return this.reduce(
+        () => NativeMaybe.Nothing)(
+        v => NativeMaybe.Just(v)
+    );
+};
+assumptionEqual(Just(10).asNative(), NativeMaybe.Just(10));
+assumptionEqual(Nothing.asNative(), NativeMaybe.Nothing);
+
+
+//- Constructs an instance of `Maybe` from a native maybe.
+//= Maybe a => asNative :: () => Data.Native.Maybe a
+const ofNative = nativeMaybe =>
+    nativeMaybe.reduce(
+        () => Nothing)(
+        v => Just(v)
+    );
+assumptionEqual(ofNative(NativeMaybe.Just(10)), Just(10));
+assumptionEqual(ofNative(NativeMaybe.Nothing), Nothing);
 
 
 module.exports = {
