@@ -1,6 +1,11 @@
 
-The Maybe type is used to represent optional values and can be seen as something like a type-safe null, where
+The Maybe datatype is used to represent optional values and can be seen as something like a type-safe null, where
 `Nothing` is `null` and `Just(x)` is the non-null value `x`.
+
+This datatype has the following type signature:
+```haskell
+instance Maybe a implements Eq a, Show a
+```
 
 ### Nothing
 
@@ -15,6 +20,22 @@ Nothing :: Maybe a
 Just :: a -> Maybe a
 ```
 
+
+### (==)
+
+```haskell
+Maybe a => (==) :: Maybe a -> Bool
+```
+
+Adds `(==)` to enable `Eq a` over this class.
+
+### show
+
+```haskell
+Maybe => show :: () -> String
+```
+
+Adds `show` to enable `Show a` over this class.
 
 ### reduce
 
@@ -158,3 +179,5 @@ ofNative(NativeMaybe.Nothing) == Nothing
 ## Dependencies
 
 * [Data.Native.Maybe (1.3.0)](https://github.com/graeme-lockley/mn-Data.Native.Maybe)
+* [Data.Eq (1.0.0)](https://github.com/graeme-lockley/mn-Data.Eq)
+* [Data.Show (1.0.0)](https://github.com/graeme-lockley/mn-Data.Show)

@@ -1,7 +1,15 @@
-//- The Maybe type is used to represent optional values and can be seen as something like a type-safe null, where
+//- The Maybe datatype is used to represent optional values and can be seen as something like a type-safe null, where
 //- `Nothing` is `null` and `Just(x)` is the non-null value `x`.
+//-
+//- This datatype has the following type signature:
+//- ```haskell
+//- instance Maybe a implements Eq a, Show a
+//- ```
 
 const NativeMaybe = mrequire("core:Data.Native.Maybe:1.3.0");
+
+const Eq = mrequire("core:Data.Eq:1.0.0");
+const Show = mrequire("core:Data.Show:1.0.0");
 
 
 function Maybe(value) {
@@ -17,6 +25,37 @@ const Nothing = new Maybe([0]);
 function Just(something) {
     return new Maybe([1, something]);
 }
+
+
+//- Adds `(==)` to enable `Eq a` over this class.
+//= Maybe a => (==) :: Maybe a -> Bool
+Eq.extend(Maybe)({
+    $EQUAL$EQUAL: self => other =>
+        self.reduce(
+            () => other.isNothing())(
+            selfValue => other.reduce(
+                () => false,
+                otherValue => selfValue.$EQUAL$EQUAL(otherValue)
+            )
+        )
+});
+
+
+//- Adds `show` to enable `Show a` over this class.
+//= Maybe => show :: () -> String
+Show.extend(Maybe)({
+    show: self =>
+        self.reduce(
+            () => "Nothing()")(
+            value => "Just(" + value.show() + ")"
+        )
+});
+
+
+Show.extend($String)({
+    show: self =>
+    "\"" + NativeString.replace("\"")("\\\"")(self.value) + "\""
+});
 
 
 //= Maybe a => reduce :: (() -> b) -> (a -> b) -> b
