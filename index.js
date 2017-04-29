@@ -158,5 +158,6 @@ assumptionEqual(ofNative(NativeMaybe.Nothing), Nothing);
 
 module.exports = {
     Just,
-    Nothing
+    Nothing,
+    ofNative
 };
